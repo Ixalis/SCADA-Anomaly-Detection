@@ -10,20 +10,17 @@ A machine learning-based anomaly detection system for industrial SCADA (Supervis
 
 1. [Overview](#overview)
 2. [Repository Structure](#repository-structure)
-3. [Prerequisites](#prerequisites)
-4. [Dataset Setup](#dataset-setup)
-5. [Pipeline Flow](#pipeline-flow)
-6. [Notebooks Description](#notebooks-description)
-7. [Models Implemented](#models-implemented)
-8. [Usage Instructions](#usage-instructions)
-9. [Results Summary](#results-summary)
-10. [References](#references)
+3. [Dataset Setup](#dataset-setup)
+4. [How to Use](#how-to-use)
+5. [Notebooks Description](#notebooks-description)
+6. [Results Summary](#results-summary)
+7. [References](#references)
 
 ---
 
 ## Overview
 
-This project implements multiple machine learning approaches for detecting anomalies and cyber attacks in industrial control systems. The system uses a hybrid cascade architecture combining rule-based detection, unsupervised learning (Isolation Forest), supervised learning (Random Forest), and deep learning (LSTM-Autoencoder).
+This project implements multiple machine learning approaches for detecting anomalies and cyber attacks in industrial control systems. The system compares supervised learning (Random Forest), unsupervised learning (Isolation Forest), and deep learning (LSTM-Autoencoder) methods.
 
 ### Key Features
 
@@ -31,7 +28,6 @@ This project implements multiple machine learning approaches for detecting anoma
 - Multi-type anomaly detection (7 anomaly categories)
 - Hybrid cascade detection pipeline
 - LSTM-Autoencoder for temporal pattern recognition
-- Real-time detection capability
 
 ---
 
@@ -41,7 +37,7 @@ This project implements multiple machine learning approaches for detecting anoma
 SCADA-Anomaly-Detection/
 │
 ├── notebooks/
-│   ├── 00_Convert_Excel_to_CSV.ipynb      # Data preprocessing
+│   ├── 00_Convert_Excel_to_CSV.ipynb
 │   ├── 01_Train_IsolationForest_SWaT.ipynb
 │   ├── 02_Inference_IsolationForest_SWaT.ipynb
 │   ├── Multi_Model_Comparison_SCADA.ipynb
@@ -49,63 +45,11 @@ SCADA-Anomaly-Detection/
 │   ├── LSTM_Autoencoder_SCADA.ipynb
 │   └── Hybrid_Anomaly_Detection_SCADA.ipynb
 │
-├── SCADA_SIM_Enhanced/                     # Simulator (optional)
-│   ├── config/
-│   │   └── config.yaml
-│   ├── src/
-│   │   ├── data_simulator.py
-│   │   ├── lstm_autoencoder_detector.py
-│   │   └── utils.py
-│   ├── models/                             # Trained models stored here
-│   ├── main.py
-│   └── requirements.txt
-│
-├── models/                                 # Saved model files
-│   ├── isolation_forest_model.pkl
-│   ├── random_forest_model.pkl
-│   ├── lstm_autoencoder.keras
-│   ├── lstm_ae_scaler.pkl
-│   ├── lstm_ae_config.pkl
-│   └── scaler.pkl
-│
-├── data/                                   # Dataset folder (NOT included)
+├── data/                        # Dataset folder (NOT included)
 │   └── .gitkeep
-│
-├── results/                                # Output results
-│   ├── model_comparison_results.csv
-│   └── anomaly_type_summary.csv
 │
 ├── README.md
 └── requirements.txt
-```
-
----
-
-## Prerequisites
-
-### Software Requirements
-
-- Python 3.8 or higher
-- Google Colab (recommended) or Jupyter Notebook
-- 12GB+ RAM for full dataset processing
-
-### Python Dependencies
-
-```
-numpy>=1.21.0
-pandas>=1.3.0
-scikit-learn>=1.0.0
-tensorflow>=2.10.0
-matplotlib>=3.4.0
-seaborn>=0.11.0
-joblib>=1.1.0
-pyyaml>=6.0
-openpyxl>=3.0.0
-```
-
-Install dependencies:
-```bash
-pip install -r requirements.txt
 ```
 
 ---
@@ -116,7 +60,7 @@ pip install -r requirements.txt
 
 The SWaT (Secure Water Treatment) dataset is proprietary and maintained by iTrust, Centre for Research in Cyber Security, Singapore University of Technology and Design.
 
-**The dataset is NOT included in this repository. You must obtain it directly from iTrust.**
+**The dataset is NOT included in this repository.**
 
 ### How to Obtain the Dataset
 
@@ -127,237 +71,113 @@ The SWaT (Secure Water Treatment) dataset is proprietary and maintained by iTrus
 
 2. Submit a request form with your institutional affiliation and intended use
 
-3. Upon approval, download the following files:
+3. Upon approval, download:
    - `SWaT_Dataset_Normal_v1.xlsx` (Normal operation data)
    - `SWaT_Dataset_Attack_v0.xlsx` (Attack data for testing)
 
-4. Place the files in the `data/` directory
+4. Place the files in your Google Drive
 
-5. Run the conversion notebook to generate CSV files:
-   ```
-   notebooks/00_Convert_Excel_to_CSV.ipynb
-   ```
-
-### Expected Data Format
-
-After conversion, your `data/` folder should contain:
-
-```
-data/
-├── SWaT_Normal.csv      # ~495,000 samples of normal operation
-└── SWaT_Attack.csv      # ~449,000 samples including attack periods
-```
-
-### Dataset Structure
-
-| Column Type | Examples | Count |
-|-------------|----------|-------|
-| Timestamp | Timestamp | 1 |
-| Sensors (Analog) | LIT101, FIT101, AIT201, etc. | 25 |
-| Actuators (Digital) | P101, MV101, P201, etc. | 26 |
-| Label | Normal/Attack | 1 |
+5. Run `00_Convert_Excel_to_CSV.ipynb` to convert to CSV format
 
 ---
 
-## Pipeline Flow
+## How to Use
 
-The detection system follows a cascaded architecture:
+### Prerequisites
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                    DATA INGESTION                               │
-│         Load SWaT CSV → Preprocess → Scale Features             │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│              LAYER 0: RULE-BASED DETECTION                      │
-│                                                                 │
-│    Check physical limits (e.g., LIT101 must be 0-1000mm)        │
-│    Latency: <1ms                                                │
-│                                                                 │
-│    [PASS] ──────────────────────────────────────────────────────┼──► NORMAL
-│    [VIOLATION] ─────────────────────────────────────────────────┼──► ALERT
-│    [UNCERTAIN]                                                  │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│           LAYER 1: ISOLATION FOREST (Unsupervised)              │
-│                                                                 │
-│    Trained on normal data only                                  │
-│    Detects statistical anomalies without labels                 │
-│    Latency: ~10ms                                               │
-│                                                                 │
-│    [NORMAL] ────────────────────────────────────────────────────┼──► NORMAL
-│    [ANOMALY DETECTED]                                           │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│           LAYER 2: RANDOM FOREST (Supervised)                   │
-│                                                                 │
-│    Only runs when Layer 1 flags anomaly                         │
-│    Classifies attack type (if labels available)                 │
-│    Latency: ~5ms                                                │
-│                                                                 │
-│    Output: Attack classification + confidence score             │
-└─────────────────────────────────────────────────────────────────┘
-                              │
-                              ▼
-┌─────────────────────────────────────────────────────────────────┐
-│                      ALERT OUTPUT                               │
-│         Detection result + Attack type + Confidence             │
-└─────────────────────────────────────────────────────────────────┘
+- Google account (for Google Colab)
+- SWaT dataset (see Dataset Setup above)
+
+### Step-by-Step Instructions
+
+**Step 1: Upload notebooks to Google Colab**
+
+Download the notebooks from this repository and upload them to Google Colab, or open them directly from GitHub.
+
+**Step 2: Mount Google Drive**
+
+Each notebook starts with:
+```python
+from google.colab import drive
+drive.mount('/content/drive')
 ```
 
-### Why This Hybrid Approach?
+**Step 3: Update data paths**
 
-| Layer | Strength | Purpose |
+In each notebook, update the paths to match your Google Drive folder:
+```python
+NORMAL_DATA_PATH = '/content/drive/MyDrive/your_folder/SWaT_Normal.csv'
+ATTACK_DATA_PATH = '/content/drive/MyDrive/your_folder/SWaT_Attack.csv'
+MODEL_SAVE_PATH = '/content/drive/MyDrive/your_folder/models/'
+```
+
+**Step 4: Run notebooks in order**
+
+| Order | Notebook | Purpose |
 |-------|----------|---------|
-| Rule-based | Zero false negatives for limit violations | Catch obvious attacks instantly |
-| Isolation Forest | No labels required, detects novel attacks | First-line anomaly detection |
-| Random Forest | High accuracy when labels available | Attack classification |
+| 1 | `00_Convert_Excel_to_CSV.ipynb` | Convert Excel to CSV (run once) |
+| 2 | `01_Train_IsolationForest_SWaT.ipynb` | Train Isolation Forest model |
+| 3 | `02_Inference_IsolationForest_SWaT.ipynb` | Test predictions |
+| 4 | `Multi_Model_Comparison_SCADA.ipynb` | Compare all 5 models |
+| 5 | `Multi_Type_Anomaly_Detection_SCADA.ipynb` | Detect 7 anomaly types |
+| 6 | `LSTM_Autoencoder_SCADA.ipynb` | Train deep learning model |
+| 7 | `Hybrid_Anomaly_Detection_SCADA.ipynb` | Run hybrid pipeline |
+
+**Step 5: For LSTM notebook, enable GPU**
+
+Go to Runtime -> Change runtime type -> Hardware accelerator -> GPU
 
 ---
 
 ## Notebooks Description
 
-### 1. Data Preprocessing
+### Data Preprocessing
 
 **00_Convert_Excel_to_CSV.ipynb**
 - Converts Excel files from iTrust to CSV format
-- Handles encoding issues and column name cleaning
 - Run this first before any other notebook
 
-### 2. Model Training
+### Model Training and Inference
 
 **01_Train_IsolationForest_SWaT.ipynb**
-- Trains Isolation Forest on normal operation data only
-- Saves model, scaler, and configuration files
-- Outputs: `isolation_forest_model.pkl`, `scaler.pkl`
-
-**LSTM_Autoencoder_SCADA.ipynb**
-- Builds and trains LSTM-Autoencoder for sequence-based detection
-- Creates sliding window sequences (30 timesteps)
-- Outputs: `lstm_autoencoder.keras`, `lstm_ae_scaler.pkl`, `lstm_ae_config.pkl`
-
-### 3. Model Comparison
-
-**Multi_Model_Comparison_SCADA.ipynb**
-- Compares 5 algorithms side-by-side:
-  - Random Forest (supervised)
-  - Isolation Forest (unsupervised)
-  - One-Class SVM (unsupervised)
-  - Local Outlier Factor (unsupervised)
-  - Autoencoder (deep learning)
-- Generates performance metrics, ROC curves, and confusion matrices
-- Outputs: `model_comparison_results.csv`
-
-### 4. Anomaly Analysis
-
-**Multi_Type_Anomaly_Detection_SCADA.ipynb**
-- Detects 7 types of anomalies beyond simple attack classification:
-
-| Anomaly Type | Description | Potential Cause |
-|--------------|-------------|-----------------|
-| Stuck Sensor | Constant values over time | Sensor failure, replay attack |
-| Sensor Drift | Gradual deviation from baseline | Calibration issues, stealthy attack |
-| Noise Burst | Sudden increase in variability | EMI, electrical interference |
-| Out-of-Range | Values exceed physical limits | Sensor malfunction, attack |
-| Spike | Sudden sharp changes | Process disturbance, attack |
-| Data Drop | Missing or null values | Network issues, sensor failure |
-| Correlation Break | Related sensors stop correlating | Targeted attack |
-
-### 5. Hybrid Detection
-
-**Hybrid_Anomaly_Detection_SCADA.ipynb**
-- Implements the three-layer cascade architecture
-- Combines rule-based, Isolation Forest, and Random Forest
-- Demonstrates real-time detection flow
-
-### 6. Inference
+- Trains Isolation Forest on normal data only
+- Saves model and scaler files
 
 **02_Inference_IsolationForest_SWaT.ipynb**
-- Loads pre-trained models
-- Runs predictions on test data
-- Evaluates detection performance
+- Loads trained model
+- Runs predictions on attack data
+- Outputs performance metrics
 
----
+### Analysis Notebooks
 
-## Models Implemented
+**Multi_Model_Comparison_SCADA.ipynb**
 
-### Supervised Methods
+Compares 5 algorithms side-by-side:
+- Random Forest (supervised)
+- Isolation Forest (unsupervised)
+- One-Class SVM (unsupervised)
+- Local Outlier Factor (unsupervised)
+- Autoencoder (deep learning)
 
-| Model | Training Data | Strengths |
-|-------|---------------|-----------|
-| Random Forest | Labeled (normal + attack) | Highest accuracy (F1: 0.9988), interpretable |
+**Multi_Type_Anomaly_Detection_SCADA.ipynb**
 
-### Unsupervised Methods
+Detects 7 types of anomalies:
+- Stuck Sensor
+- Sensor Drift
+- Noise Burst
+- Out-of-Range
+- Spike
+- Data Drop
+- Correlation Break
 
-| Model | Training Data | Strengths |
-|-------|---------------|-----------|
-| Isolation Forest | Normal only | Fast, no labels needed, detects novel attacks |
-| One-Class SVM | Normal only | Good for well-defined normal boundary |
-| Local Outlier Factor | Normal only | Density-based, good for local anomalies |
+**LSTM_Autoencoder_SCADA.ipynb**
+- Builds LSTM-Autoencoder for sequence-based detection
+- Uses sliding window (30 timesteps)
+- Requires GPU for faster training
 
-### Deep Learning Methods
-
-| Model | Training Data | Strengths |
-|-------|---------------|-----------|
-| LSTM-Autoencoder | Normal sequences | Captures temporal patterns, high recall (93.9%) |
-| Standard Autoencoder | Normal only | Simpler, faster training |
-
----
-
-## Usage Instructions
-
-### Running on Google Colab (Recommended)
-
-1. Upload the notebooks to Google Colab
-
-2. Mount your Google Drive:
-   ```python
-   from google.colab import drive
-   drive.mount('/content/drive')
-   ```
-
-3. Update the data paths in each notebook:
-   ```python
-   NORMAL_DATA_PATH = '/content/drive/MyDrive/your_folder/SWaT_Normal.csv'
-   ATTACK_DATA_PATH = '/content/drive/MyDrive/your_folder/SWaT_Attack.csv'
-   MODEL_SAVE_PATH = '/content/drive/MyDrive/your_folder/models/'
-   ```
-
-4. Run notebooks in order:
-   ```
-   00_Convert_Excel_to_CSV.ipynb  →  First (if you have Excel files)
-   01_Train_IsolationForest_SWaT.ipynb  →  Training
-   Multi_Model_Comparison_SCADA.ipynb  →  Compare all models
-   02_Inference_IsolationForest_SWaT.ipynb  →  Test predictions
-   ```
-
-### Running Locally
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/YOUR_USERNAME/SCADA-Anomaly-Detection.git
-   cd SCADA-Anomaly-Detection
-   ```
-
-2. Install dependencies:
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-3. Place SWaT dataset in `data/` folder
-
-4. Run Jupyter:
-   ```bash
-   jupyter notebook
-   ```
-
-Note: Local execution requires 12GB+ RAM for full dataset. Use the memory-optimized settings in notebooks if running on limited hardware.
+**Hybrid_Anomaly_Detection_SCADA.ipynb**
+- Implements three-layer cascade: Rule-based -> Isolation Forest -> Random Forest
+- Demonstrates the complete detection pipeline
 
 ---
 
@@ -365,23 +185,19 @@ Note: Local execution requires 12GB+ RAM for full dataset. Use the memory-optimi
 
 ### Model Performance Comparison (SWaT Dataset)
 
-| Model | Accuracy | Precision | Recall | F1-Score | AUC-ROC |
-|-------|----------|-----------|--------|----------|---------|
-| Random Forest | 99.85% | 99.77% | 99.99% | 0.9988 | 0.9999 |
-| Isolation Forest | 54.90% | 47.30% | 99.80% | 0.5490 | 0.7842 |
-| One-Class SVM | 63.21% | 52.10% | 88.50% | 0.6321 | 0.7156 |
-| LOF | 66.82% | 54.80% | 91.20% | 0.6682 | 0.7523 |
-| LSTM-Autoencoder | 33.97% | 15.10% | 93.93% | 0.2601 | 0.7228 |
+| Model | Accuracy | Precision | Recall | F1-Score |
+|-------|----------|-----------|--------|----------|
+| Random Forest | 99.85% | 99.77% | 99.99% | 0.9988 |
+| Isolation Forest | 54.90% | 47.30% | 99.80% | 0.5490 |
+| One-Class SVM | 63.21% | 52.10% | 88.50% | 0.6321 |
+| LOF | 66.82% | 54.80% | 91.20% | 0.6682 |
+| LSTM-Autoencoder | 33.97% | 15.10% | 93.93% | 0.2601 |
 
 ### Key Findings
 
-1. **Random Forest** achieves the best overall performance when labeled data is available
-
-2. **Isolation Forest** provides the best balance between detection rate and speed for unsupervised scenarios, making it ideal for deployments without labeled attack data
-
-3. **LSTM-Autoencoder** achieves high recall (93.9%), catching most attacks at the cost of more false positives, suitable when missing attacks is more costly than false alarms
-
-4. The **hybrid cascade approach** (Rule-based, Isolation Forest, Random Forest) provides the best practical deployment strategy
+- **Random Forest** achieves the best performance when labeled data is available
+- **Isolation Forest** is ideal for deployments without labeled attack data
+- **LSTM-Autoencoder** achieves high recall (93.9%), suitable when missing attacks is costly
 
 ---
 
@@ -397,7 +213,7 @@ Note: Local execution requires 12GB+ RAM for full dataset. Use the memory-optimi
 
 ## License
 
-This project is for educational and research purposes. The SWaT dataset has its own usage terms defined by iTrust.
+This project is for educational and research purposes.
 
 ---
 
