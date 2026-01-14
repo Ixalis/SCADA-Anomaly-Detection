@@ -1,0 +1,40 @@
+# Data files (must be downloaded separately)
+data/*.csv
+data/*.xlsx
+data/*.xls
+
+# Model files (large binary files)
+models/*.pkl
+models/*.keras
+models/*.h5
+
+# Jupyter checkpoints
+.ipynb_checkpoints/
+*/.ipynb_checkpoints/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Virtual environments
+venv/
+env/
+.env/
+
+# IDE settings
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Results (regenerate by running notebooks)
+results/*.csv
+results/*.png
+
+# Temporary files
+*.tmp
+*.log

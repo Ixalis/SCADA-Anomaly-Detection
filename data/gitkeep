@@ -1,0 +1,6 @@
+# This folder should contain the SWaT dataset files
+# Download from iTrust: https://itrust.sutd.edu.sg/itrust-labs_datasets/
+#
+# Required files after conversion:
+# - SWaT_Normal.csv
+# - SWaT_Attack.csv
